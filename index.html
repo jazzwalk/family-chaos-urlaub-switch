@@ -1,0 +1,1459 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Family Chaos: Urlaub</title></head><body>
+<style>:root{padding-top:0px;padding-bottom:0px}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: Szene als Puppenhaus-Bühne (hochkant oben, quer links), Figuren-Tabs + Aktionsliste (hochkant unten, quer rechts) */
+:root{
+  --bg:#151829; --panel:#1f2340; --panel2:#2a2f57; --line:#3a4072; --fg:#f4efe4; --muted:#a9acc9;
+  --sun:#ffc857; --coral:#ff7a59; --sea:#4cc3d9; --good:#6fd38b; --bad:#ff6b6b;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+html{box-sizing:border-box;height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{height:100%;background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidden}
+button{font-family:inherit;color:inherit}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+#app{height:100%;display:flex;flex-direction:column;gap:8px;max-width:1280px;margin:0 auto;
+  padding-left:16px;padding-right:16px;padding-top:8px;padding-bottom:8px}
+.top{display:flex;align-items:center;gap:10px;flex:none}
+.stg{display:flex;flex-direction:column;min-width:0;flex:1}
+.stg .eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.stg .nm{font-family:var(--display);font-weight:600;font-size:19px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dots{display:flex;gap:4px;margin-top:3px}
+.dots i{width:22px;height:5px;border-radius:3px;background:var(--line)}
+.dots i.on{background:var(--sun)} .dots i.done{background:var(--good)}
+.clock{text-align:right;flex:none}
+.clock b{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums;color:var(--sun)}
+.clock small{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.ibtn{flex:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:16px;cursor:pointer}
+.main{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.left,.right{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
+.right{flex:1}
+.scene{border-radius:14px;overflow:hidden;background:#0e1020;flex:none}
+.scene svg{display:block;width:100%;height:auto;max-height:36vh}
+.log{font-size:13px;line-height:1.35;color:var(--muted);min-height:1.35em}
+.log p{margin:0}
+.log p:first-child{color:var(--fg);font-weight:700}
+.log p:not(:first-child){display:none}
+.tasks{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.chip.ok{background:#1f3b30;border-color:#2f6b4c;color:var(--good)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:none}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 7px;border-radius:12px;border:2px solid transparent;background:var(--panel);cursor:pointer}
+.tab.sel{border-color:var(--sun);background:var(--panel2)}
+.tab svg{width:40px;height:40px}
+.tab .who{font-family:var(--display);font-weight:600;font-size:14px;line-height:1}
+.tab .role{font-size:10px;color:var(--muted);font-weight:700}
+.bar{width:88%;height:6px;border-radius:3px;background:#0f1122;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+.acts{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:6px;align-content:start;padding-bottom:4px}
+.acts h3{margin:4px 2px 0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.act{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;min-width:0}
+.act:hover{background:var(--panel2)}
+.act .ic{font-size:20px;width:26px;text-align:center;flex:none}
+.act .tx{min-width:0;display:flex;flex-direction:column}
+.act .lb{font-weight:800;font-size:14px;line-height:1.2}
+.act .sb{font-size:11.5px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.act.adv{border-color:var(--sun);background:#3a3218}
+.act.lock{opacity:.45;cursor:not-allowed}
+.act.task .lb::after{content:" ★";color:var(--sun)}
+@media (min-width:520px) and (max-aspect-ratio:5/4){.acts{grid-template-columns:1fr 1fr}.acts h3{grid-column:1/-1}}
+@media (min-aspect-ratio:5/4) and (min-width:560px){
+  .main{flex-direction:row}
+  .left{flex:1.45} .right{flex:1}
+  .scene svg{max-height:62vh}
+  .log p:not(:first-child){display:block}
+}
+.ov{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(8,9,20,.78);display:flex;align-items:center;justify-content:center;z-index:20;
+  padding:16px 16px 16px 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:520px;width:100%;max-height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.card h2{font-family:var(--display);font-weight:600;font-size:24px;margin:0;text-wrap:balance}
+.card .eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sun);font-weight:800}
+.card p{margin:0;line-height:1.45}
+.card ul{margin:0;padding-left:18px;line-height:1.5}
+.card li.bad{color:#ffb3a8} .card li.good{color:#a8ecbc}
+.ch{display:flex;flex-direction:column;gap:6px}
+.btn{padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;text-align:left;font-weight:800;font-size:15px}
+.btn small{display:block;font-weight:700;font-size:11.5px;color:var(--muted)}
+.btn.pri{background:var(--sun);color:#2a1d00;border-color:var(--sun);text-align:center}
+.moods{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;font-size:12px;font-weight:800}
+.moods b{display:block;font-family:var(--display);font-size:20px}
+.big{font-family:var(--display);font-size:54px;color:var(--sun);line-height:1;font-variant-numeric:tabular-nums}
+.pop{font-family:var(--display);font-weight:700;font-size:18px;animation:pop 1.4s ease-out forwards}
+@keyframes pop{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-26px)}}
+.bob{animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.glow{animation:glow 1s ease-in-out infinite alternate}
+@keyframes glow{from{opacity:.4}to{opacity:1}}
+.drift{animation:drift 9s linear infinite}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-160px)}}
+.wave{animation:wave 3s ease-in-out infinite alternate}
+@keyframes wave{to{transform:translateX(18px)}}
+.fly{animation:fly 14s linear infinite}
+@keyframes fly{from{transform:translateX(-120px)}to{transform:translateX(900px)}}
+@media (prefers-reduced-motion:reduce){.pop,.bob,.glow,.drift,.wave,.fly{animation:none}}
+
+/* Switch / alte Browser */
+#app>*+*,.main>*+*,.left>*+*,.right>*+*,.card>*+*,.ch>*+*{margin-top:8px}
+.top>*+*{margin-left:10px}
+.dots>*+*{margin-left:4px}
+.tasks>*{margin:0 5px 5px 0}
+.tab>*+*{margin-top:2px}
+.act>*+*{margin-left:10px}
+.tabs{grid-gap:6px}.acts{grid-gap:6px}.moods{grid-gap:6px}
+.acts>*{margin:0!important}
+@media (min-aspect-ratio:5/4) and (min-width:560px){
+  .main>*+*{margin-top:0;margin-left:10px}
+  body{font-size:16px}
+  .act .lb{font-size:16px}.act .sb{font-size:13px}
+  .tab svg{width:52px;height:52px}.tab .who{font-size:16px}
+  .log{font-size:15px}
+}
+</style>
+
+<div id="app">
+  <div class="top">
+    <div class="stg"><span class="eyebrow" id="eyebrow">Family Chaos: Urlaub</span><span class="nm" id="stname">…</span><div class="dots" id="dots"></div></div>
+    <div class="clock"><b id="clock">6:00</b><small id="deadline"></small></div>
+    <button class="ibtn" id="mute" aria-label="Ton an/aus">🔊</button>
+    <button class="ibtn" id="menu" aria-label="Menü">☰</button>
+  </div>
+  <div class="main">
+    <div class="left">
+      <div class="scene"><svg id="scene" viewBox="0 0 800 340" role="img" aria-label="Spielszene"></svg></div>
+      <div class="log" id="log"></div>
+      <div class="tasks" id="tasks"></div>
+    </div>
+    <div class="right">
+      <div class="tabs" id="tabs"></div>
+      <div class="acts" id="acts"></div>
+    </div>
+  </div>
+</div>
+<div class="ov" id="ov" hidden><div class="card" id="card"></div></div>
+
+<script>
+var CH = ["S", "R", "T", "M"];
+var INFO = {
+  S: { role: "Papa", shirt: "#3f7fd8", hair: "#3a3b42" },
+  R: { role: "Mama", shirt: "#ea8bb8", hair: "#6b4226" },
+  T: { role: "11 Jahre", shirt: "#d8453a", hair: "#764727" },
+  M: { role: "9 Jahre", shirt: "#1e3a6e", hair: "#b2834f" }
+};
+var MELT = { S: "Oh nee, ich will meine Ruhe!", R: "Ich mach hier alles allein!", T: "Ich hab HUNGER!", M: "Bäh! Alles bäh!" };
+var st = null;
+function A(id, label, ico, mins, o) {
+  o = o || {};
+  o.id = id;
+  o.label = label;
+  o.ico = ico;
+  o.mins = mins;
+  return o;
+}
+function hm(t) {
+  var h = Math.floor(t / 60) % 24, m = t % 60;
+  return h + ":" + (m < 10 ? "0" : "") + m;
+}
+function cur() {
+  return STAGES[st.stage];
+}
+function T(id) {
+  return !!st.tasks[id];
+}
+function F(id) {
+  return !!st.flags[id];
+}
+function val(v) {
+  return typeof v === "function" ? v() : v;
+}
+function asleep() {
+  return F("asleep");
+}
+function awake() {
+  return !F("asleep");
+}
+function wake() {
+  st.flags.asleep = false;
+}
+function sunPen() {
+  return !T("eincremen") && st.t >= 600 ? -8 : 0;
+}
+function out(c, base) {
+  return function() {
+    var o = {};
+    for (var k in base) o[k] = base[k];
+    o[c] = (o[c] || 0) + sunPen();
+    return o;
+  };
+}
+function burn(c) {
+  return function() {
+    if (sunPen()) {
+      st.flags["burn" + c] = 1;
+      addLog(c + " bekommt Sonnenbrand. Autsch.");
+    }
+  };
+}
+var STAGES = [
+  {
+    id: "home",
+    name: "Koffer packen",
+    short: "Zuhause",
+    start: 360,
+    end: 480,
+    endLabel: "Taxi kommt",
+    intro: "6:00 Uhr. Um 8:00 steht das Taxi zum Flughafen vor der Tür. Mogli miaut wie jeden Morgen. Papa schläft noch. Der Katzensitter kommt gleich und zieht für zwei Wochen ein.",
+    timeUp: "8:00 – Das Taxi hupt. Alle rein, egal wie!",
+    tasks: [["packed", "Koffer gepackt"], ["koffer", "Koffer zu"], ["pass", "Pässe"], ["creme", "Sonnencreme"], ["kabel", "Ladekabel"], ["sitter", "Katzensitter eingewiesen"], ["herd", "Herd aus"]],
+    init: function() {
+      st.flags.asleep = true;
+    },
+    actions: {
+      S: [
+        A("snooze", "Noch 5 Minuten", "😴", 10, { repeat: true, req: asleep, fx: { S: 6, R: -4 }, say: "Zzz… noch fünf Minuten…" }),
+        A("aufstehen", "Aufstehen", "🥱", 5, { req: asleep, fx: { S: -6 }, run: wake, say: "Oh nee. Urlaub ist anstrengend." }),
+        A("pass", "Pässe suchen", "🛂", 15, { req: awake, task: "pass", fx: { S: -4, R: 3 }, say: "Die waren … in der Brotdose?!" }),
+        A("zusitzen", "Koffer zusitzen", "🧳", 10, {
+          req: awake,
+          lock: function() {
+            return T("packed") ? "" : "Erst muss R packen";
+          },
+          task: "koffer",
+          fx: function() {
+            return F("lego") ? { S: -8, T: 4 } : { S: -3 };
+          },
+          say: function() {
+            return F("lego") ? "T, setz dich mit drauf! Eins, zwei, DREI!" : "Passt. Hab ich doch gesagt.";
+          }
+        }),
+        A("herdS", "Herd checken", "🔥", 5, { req: awake, task: "herd", fx: { S: 2 }, say: "Herd ist aus. Glaub ich. Ziemlich sicher." }),
+        A("kaffee", "Kaffee im Stehen", "☕", 10, { req: awake, fx: { S: 10 }, say: "Ohne Kaffee kein Urlaub." }),
+        A("nelli", "Nelli auf dem Schoß", "🐈", 10, { req: awake, fx: { S: 8, R: -3 }, say: "Ich kann nicht aufstehen. Nelli liegt da." })
+      ],
+      R: [
+        A("packen", "Koffer nach Liste packen", "📋", 20, { task: "packed", fx: { R: -6 }, say: "Die Liste hat inzwischen drei Seiten." }),
+        A("creme", "Sonnencreme einpacken", "🧴", 5, { task: "creme", fx: { R: 2 }, say: "LSF 50. Für alle. Keine Diskussion." }),
+        A("sitter", "Katzensitter einweisen", "🐾", 20, {
+          lock: function() {
+            return F("sitterHere") ? "" : "Er ist noch nicht da (kommt gegen 6:30)";
+          },
+          task: "sitter",
+          fx: { R: -4 },
+          say: "Nia frisst alles, Nelli jagt Nia, Nala ist … Nala. Mogli schreit um sechs."
+        }),
+        A("snacks", "Snacks schmieren", "🥪", 15, { flag: "snacks", fx: { R: -2, T: 2, M: 2 }, say: "Acht Brote. T isst davon sechs." }),
+        A("weckenR", "Papa wecken", "⏰", 5, { req: asleep, fx: { R: 3, S: -8 }, run: wake, say: "Schatz. Das TAXI." }),
+        A("herdR", "Herd checken", "🔥", 5, { task: "herd", fx: { R: 2 }, say: "Aus. Ich hab ein Foto gemacht, zur Sicherheit." })
+      ],
+      T: [
+        A("lego", "Lego einpacken", "🧱", 10, { req: function() {
+          return !F("lego") && !st.done.legoraus;
+        }, flag: "lego", fx: { T: 12, R: -4 }, say: "Nur die wichtigsten 2000 Steine." }),
+        A("legoraus", "Lego wieder auspacken", "🧱", 10, { req: function() {
+          return F("lego");
+        }, unflag: "lego", fx: { T: -10, R: 5 }, say: "Na gut. Nur noch 200 Steine." }),
+        A("kabel", "Ladekabel suchen", "🔌", 10, { task: "kabel", fx: { T: 3 }, say: "Lag unterm Sofa. Bei Mogli." }),
+        A("wanders", "Wanders einpacken", "🐿️", 5, { flag: "wanders", fx: { T: 8 }, say: "Wanders braucht auch mal Urlaub." }),
+        A("weckenT", "Papa wecken (Bauchplatscher)", "💥", 5, { req: asleep, fx: { T: 8, S: -15 }, run: wake, say: "URLAUB!!!" })
+      ],
+      M: [
+        A("fuffi", "Fuffi einpacken", "🐶", 5, { flag: "fuffi", fx: { M: 10, R: -3 }, say: "Fuffi passt nicht in den Koffer. Fuffi kommt trotzdem mit." }),
+        A("ketchup", "Ketchup ins Handgepäck", "🍅", 5, { flag: "ketchup", fx: { M: 6 }, say: "Für den Notfall. Am Meer gibt es bestimmt keinen." }),
+        A("ball", "Fußball einpacken", "⚽", 5, { flag: "ball", fx: { M: 4, R: -2 }, say: "Der muss mit. Der ist schon eingespielt." }),
+        A("tschuess", "Katzen verabschieden", "🐈", 10, { fx: { M: 6 }, say: "Tschüss Nia, Nelli, Nala … Mogli? MOGLI?" }),
+        A("weckenM", "Papa wecken (Fuffi aufs Gesicht)", "🐶", 5, { req: asleep, fx: { M: 8, S: -10 }, run: wake, say: "Fuffi sagt: AUFSTEHEN!" })
+      ]
+    },
+    family: [A("taxi", "Ins Taxi steigen", "🚕", 0, { advance: true, lock: function() {
+      return asleep() ? "Papa schläft noch" : "";
+    } })],
+    events: [
+      {
+        id: "sitterKommt",
+        force: true,
+        cond: function() {
+          return st.t >= 390;
+        },
+        title: "DING DONG!",
+        text: 'Der Katzensitter steht mit zwei Taschen vor der Tür. Er hat schon die erste Frage: „Welche ist Nala?"',
+        choices: [{ label: "Rein mit ihm!", flag: "sitterHere", fx: { R: 2 } }]
+      },
+      {
+        id: "nia",
+        force: true,
+        cond: function() {
+          return T("packed") && !T("koffer");
+        },
+        title: "Der Koffer miaut",
+        text: "Im offenen Koffer liegt Nia zwischen den Badehosen und schnurrt.",
+        choices: [
+          { label: "Nia rausheben", mins: 5, fx: { M: 3, R: -2 }, say: "Raus da, du Schnurrbrocken." },
+          { label: '„Nia darf mit!"', fx: { M: 6, R: -8 }, sayBy: "R", say: "Nein. NEIN. Nia bleibt hier." }
+        ]
+      },
+      {
+        id: "nala",
+        cond: function() {
+          return !T("packed");
+        },
+        title: "Nala hilft",
+        text: "Nala hat sich auf die Packliste gelegt und denkt nicht daran, aufzustehen.",
+        choices: [
+          { label: "Liste unter Nala rausziehen", fx: { R: -4 }, sayBy: "R", say: "Nala, das ist keine Decke." },
+          { label: "Nala liegen lassen", fx: { S: 3, R: -2 }, sayBy: "S", say: "Lass sie. Sie versteht eh nix." }
+        ]
+      },
+      {
+        id: "mogli",
+        title: "Mogli hat ein Geschenk",
+        text: "Mogli hat vor die Haustür gekotzt. Natürlich heute.",
+        choices: [
+          { label: "Ich mach das weg", mins: 5, fx: { sel: -6 } },
+          { label: "Das macht der Katzensitter", cond: function() {
+            return F("sitterHere");
+          }, fx: { all: 2, R: -2 }, sayBy: "R", say: "Willkommen im Team!" }
+        ]
+      },
+      {
+        id: "nelliJagd",
+        title: "Katzenrennen",
+        text: "Nelli jagt Nia quer durch den Flur. Ein Blumentopf kippt um.",
+        choices: [{ label: "Aufkehren", mins: 5, fx: { sel: -3 } }, { label: "Später …", fx: { R: -5 } }]
+      }
+    ],
+    finish: function(m) {
+      if (!T("koffer")) {
+        m.push({ bad: 1, t: "Der Koffer ist noch offen. Im Taxi wird gestopft." });
+        fx({ R: -12, S: -6 });
+      }
+      if (!T("pass")) {
+        m.push({ bad: 1, t: "Pässe vergessen! Das Taxi dreht nach zwei Kilometern um." });
+        st.flags.late = 1;
+        fx({ all: -8 });
+      }
+      if (!T("creme")) m.push({ bad: 1, t: "Die Sonnencreme steht noch im Bad." });
+      if (!T("kabel")) m.push({ bad: 1, t: "Das Ladekabel liegt noch unterm Sofa. Bei Mogli." });
+      if (!T("sitter")) {
+        m.push({ bad: 1, t: "Der Katzensitter winkt ratlos aus der Tür." });
+        st.flags.sitterConfused = 1;
+      }
+      if (!T("herd")) {
+        m.push({ bad: 1, t: "Ob der Herd aus ist? Keiner weiß es." });
+        st.flags.herdWorry = 1;
+      }
+      if (F("lego")) m.push({ t: "Ts Koffer wiegt verdächtig viel." });
+      if (F("fuffi")) m.push({ good: 1, t: "Fuffi sitzt angeschnallt im Taxi." });
+      if (F("ketchup")) m.push({ t: "Im Handgepäck: eine große Flasche Ketchup." });
+    }
+  },
+  {
+    id: "airport",
+    name: "Flughafen",
+    short: "Flughafen",
+    start: 540,
+    end: 640,
+    endLabel: "Boarding",
+    intro: "9:00 Uhr, Terminal 1. Um 10:40 ist Boarding. Koffer abgeben, durch die Kontrolle, Gate finden. Klingt einfach.",
+    timeUp: '10:40 – „Letzter Aufruf!" Ihr rennt. Die Tür geht hinter euch zu.',
+    tasks: [["checkin", "Check-in"], ["security", "Kontrolle"], ["gate", "Am Gate"]],
+    init: function() {
+      if (F("late")) {
+        st.t += 25;
+        addLog("Wegen der Pässe 25 Minuten zu spät.");
+      }
+    },
+    drift: { T: -1 / 15, M: -1 / 15 },
+    actions: {
+      S: [
+        A("fkaffee", "Flughafen-Kaffee", "☕", 10, { fx: { S: 10, R: -2 }, say: "4,90 € für einen Kaffee. Urlaub halt." }),
+        A("tafel", "Abflugtafel fotografieren", "📸", 5, { fx: { S: 5 }, run: function() {
+          st.fotos += 1;
+        }, say: "Fürs Album." }),
+        A("sitze", "Sitzplätze nochmal checken", "💺", 5, { fx: { S: 3, R: 3 }, say: "Reihe 23. Alle vier nebeneinander. Hoffentlich." })
+      ],
+      R: [
+        A("duty", "Duty-free bummeln", "🛍️", 15, { lock: function() {
+          return T("security") ? "" : "Erst durch die Kontrolle";
+        }, fx: { R: 12, S: -3 }, say: "Ich schau nur." }),
+        A("zaehl", "Pässe nachzählen", "🛂", 5, { repeat: true, fx: { R: 3 }, say: "Vier. Immer noch vier." }),
+        A("wasser", "Wasser vor der Kontrolle austrinken", "💧", 5, { lock: function() {
+          return T("security") ? "Zu spät, schon durch" : "";
+        }, fx: { R: -2, T: 2 }, say: "Ein Liter auf ex. Prost." })
+      ],
+      T: [
+        A("planes", "Flugzeuge zählen", "✈️", 10, { fx: { T: 6 }, say: "Siebzehn! Achtzehn! Das da ist ein A380!" }),
+        A("laufband", "Laufband rückwärts laufen", "🏃", 5, { fx: { T: 8, R: -4 }, say: "Das ist wie ein Level!" }),
+        A("suess", "Süßigkeiten im Duty-free", "🍬", 10, { lock: function() {
+          return T("security") ? "" : "Erst durch die Kontrolle";
+        }, fx: { T: 8, R: -4, S: -2 }, say: "Die Tüten sind am Flughafen doppelt so groß!" })
+      ],
+      M: [
+        A("rennen", "Rollkoffer-Rennen", "🧳", 5, { fx: { M: 8, S: -3 }, say: function() {
+          return F("fuffi") ? "Fuffi fährt mit!" : "Platz da!";
+        } }),
+        A("baldA", '„Sind wir bald da?"', "❓", 0, { repeat: true, fx: { M: 1, S: -2, R: -2 }, run: function() {
+          st.bald++;
+        }, say: "Sind wir bald da?" }),
+        A("schach", "Schach auf Papas Handy", "♟️", 10, { fx: { M: 7, S: -2 }, say: "Schachmatt in drei Zügen. Gegen den Computer." })
+      ]
+    },
+    family: [
+      A("checkin", "Koffer einchecken", "🧳", 20, {
+        task: "checkin",
+        fx: { all: -2 },
+        say: "Bitte einmal auf die Waage.",
+        run: function() {
+          if (F("lego")) st.queue = EV_OVER;
+        }
+      }),
+      A("security", "Sicherheitskontrolle", "🛃", 25, {
+        lock: function() {
+          return T("checkin") ? "" : "Erst einchecken";
+        },
+        task: "security",
+        fx: function() {
+          var o = { S: -4 };
+          if (F("ketchup")) o.M = -15;
+          return o;
+        },
+        run: function() {
+          if (F("ketchup")) {
+            st.flags.ketchupLost = 1;
+            st.flags.ketchup = 0;
+            addLog("Ketchup konfisziert. Mehr als 100 ml.");
+          }
+          if (F("legoHand")) {
+            st.t += 15;
+            addLog("Jeder Legostein wird einzeln geröntgt. +15 Minuten.");
+          }
+        },
+        say: function() {
+          return F("ketchup") ? "MEIN KETCHUP!!!" : "Piiiiep. Papas Gürtel.";
+        },
+        sayBy: function() {
+          return F("ketchup") ? "M" : "S";
+        }
+      }),
+      A("gate", "Zum Gate gehen", "🚶", 15, { lock: function() {
+        return T("security") ? "" : "Erst durch die Kontrolle";
+      }, task: "gate", fx: { all: 1 }, say: "Gate B12. Wir sind da!" }),
+      A("board", "Boarding", "🛫", 0, { advance: true, lock: function() {
+        return T("gate") ? "" : "Erst zum Gate";
+      } })
+    ],
+    events: [
+      {
+        id: "durchsage",
+        force: true,
+        cond: function() {
+          return st.t >= 600 && !T("gate");
+        },
+        title: "Durchsage",
+        text: function() {
+          return F("fuffi") ? '„Letzter Aufruf für die Familie mit dem riesigen Plüschhund!"' : '„Letzter Aufruf für die Familie aus Reihe 23!"';
+        },
+        choices: [{ label: "Schneller!", fx: { all: -6 } }]
+      },
+      {
+        id: "gatewechsel",
+        cond: function() {
+          return T("security") && !T("gate");
+        },
+        title: "Gatewechsel",
+        text: "Euer Flug geht jetzt von D47. Das ist am anderen Ende vom Terminal.",
+        run: function() {
+          st.flags.gateD = 1;
+        },
+        choices: [{ label: "Rennen!", fx: { all: -5 }, run: function() {
+          st.flags.gateD = 1;
+        } }, { label: "Laufband nehmen", mins: 5, fx: { T: 5, M: 5 }, run: function() {
+          st.flags.gateD = 1;
+        } }]
+      },
+      {
+        id: "schlange",
+        cond: function() {
+          return T("checkin") && !T("security");
+        },
+        title: "Die Schlange",
+        text: "Die Schlange vor der Kontrolle geht bis zum Burger-Laden.",
+        choices: [{ label: "Anstellen", mins: 10, fx: { all: -3 } }, { label: "Familienspur suchen", fx: { R: 5 }, sayBy: "R", say: "Da drüben! Mit Kindern!" }]
+      },
+      {
+        id: "klo",
+        title: "Notfall",
+        text: "M muss. Jetzt. Sofort.",
+        choices: [{ label: "Toilette suchen", mins: 10, fx: { S: -3, M: 5 } }, { label: '„Kannst du noch halten?"', fx: { M: -8 }, sayBy: "M", say: "NEIN!" }]
+      }
+    ],
+    finish: function(m) {
+      if (!T("gate")) {
+        m.push({ bad: 1, t: "Gate-Sprint durchs Terminal. Alle schwitzen." });
+        fx({ all: -10 });
+      }
+      if (F("ketchupLost")) m.push({ bad: 1, t: "Ms Ketchup bleibt am Flughafen." });
+      m.push({ good: 1, t: "Alle vier sitzen im Flieger. Reihe 23." });
+    }
+  },
+  {
+    id: "plane",
+    name: "Im Flugzeug",
+    short: "Flugzeug",
+    start: 660,
+    end: 810,
+    endLabel: "Landung",
+    skipDrift: true,
+    intro: "11:00 Uhr, Abflug. Zweieinhalb Stunden in Reihe 23, vier Plätze nebeneinander. Aber nur einer davon ist am Fenster.",
+    timeUp: "13:30 – Landeanflug. Rückenlehnen hoch!",
+    tasks: [["fenster", "Fensterplatz geklärt"], ["gurt", "Angeschnallt"], ["ohren", "Kaugummi"]],
+    startEvent: "fenster",
+    drift: { T: -1 / 10, M: -1 / 10 },
+    actions: {
+      S: [
+        A("schlaf", "Mit offenem Mund schlafen", "😴", 30, { repeat: true, fx: { S: 12 }, flag: "snore", say: "Krrrr … pchhh …" }),
+        A("bkaffee", "Kaffee an Bord", "☕", 10, { fx: { S: 5, R: -1 }, say: "7 € für einen Pappbecher." }),
+        A("wolken", "Wolken fotografieren", "📸", 5, { fx: { S: 5 }, run: function() {
+          st.fotos += 3;
+        }, say: "Das wird ein Kalenderblatt." })
+      ],
+      R: [
+        A("hoerbuch", "Hörbuch hören", "🎧", 30, { repeat: true, fx: { R: 10 }, say: "Endlich. Kapitel 14." }),
+        A("snacksR", "Snacks verteilen", "🥪", 5, { req: function() {
+          return F("snacks");
+        }, fx: { T: 8, M: 8, R: 3 }, say: "Die Brote von heute früh!" }),
+        A("sandw", "Bordsandwiches kaufen", "🥪", 10, { req: function() {
+          return !F("snacks");
+        }, fx: { T: 5, M: 5, S: 3, R: -5 }, say: "28 € für vier Sandwiches." }),
+        A("kaugummi", "Kaugummi verteilen", "🫧", 5, { task: "ohren", fx: { all: 2 }, say: "Kauen! Wegen der Ohren!" }),
+        A("snorefoto", "Schnarchfoto von Papa", "📱", 5, { req: function() {
+          return F("snore");
+        }, fx: { R: 8, T: 4 }, say: "Für die Familiengruppe." })
+      ],
+      T: [
+        A("switch", "Switch spielen", "🎮", 20, {
+          repeat: true,
+          fx: function() {
+            return T("kabel") ? { T: 12 } : { T: -6 };
+          },
+          say: function() {
+            return T("kabel") ? "Nur noch ein Level." : "AKKU LEER. Das Kabel liegt unterm Sofa!";
+          }
+        }),
+        A("karte", "Sicherheitskarte studieren", "🗺️", 10, { fx: { T: 3 }, say: "Wo genau ist die Schwimmweste?" }),
+        A("nach", "Snack nachbestellen", "🥨", 10, { repeat: true, fx: { T: 6, R: -3 }, say: "Haben Sie noch Brezeln? Drei?" })
+      ],
+      M: [
+        A("baldP", '„Sind wir bald da?"', "❓", 0, { repeat: true, fx: { M: 1, S: -2, R: -2 }, run: function() {
+          st.bald++;
+        }, say: "Sind wir bald da?" }),
+        A("fuffiFly", "Mit Fuffi Flugzeug spielen", "🐶", 15, { req: function() {
+          return F("fuffi");
+        }, fx: { M: 10 }, say: "Fuffi fliegt zum ersten Mal!" }),
+        A("ketchupB", "Ketchup bestellen", "🍅", 5, { fx: function() {
+          return { M: F("ketchupLost") ? 12 : 6 };
+        }, say: "Haben Sie KETCHUP?" }),
+        A("treten", "Gegen den Vordersitz tippen", "🦶", 5, { fx: { M: 5, S: -6 }, say: "Der Mann vorne dreht sich um." })
+      ]
+    },
+    family: [
+      A("gurt", "Anschnallen", "💺", 5, { task: "gurt", fx: { all: 1 }, say: "Klick. Klick. Klick. … M?" }),
+      A("land", "Landung abwarten", "🛬", 0, { advance: true, lock: function() {
+        return T("gurt") ? "" : "Erst anschnallen";
+      }, sub: "Die Restzeit vergeht, T und M langweilen sich" })
+    ],
+    events: [
+      {
+        id: "fenster",
+        title: "Der Fensterplatz",
+        text: "Alle wollen ans Fenster. Wer bekommt ihn?",
+        choices: [
+          { label: "T bekommt ihn", task: "fenster", fx: { T: 10, M: -10 }, run: function() {
+            st.flags.seats = "TMRS";
+          }, sayBy: "M", say: "Das ist so unfair!" },
+          { label: "M bekommt ihn", task: "fenster", fx: { M: 10, T: -10 }, run: function() {
+            st.flags.seats = "MTRS";
+          }, sayBy: "T", say: "Der guckt eh nicht raus!" },
+          { label: "Abwechseln nach der Hälfte", task: "fenster", fx: { T: 3, M: 3, R: -2 }, run: function() {
+            st.flags.seats = "TMRS";
+          }, sayBy: "R", say: "Ich stell einen Timer." },
+          { label: "Papa nimmt ihn und schläft", task: "fenster", fx: { S: 10, T: -8, M: -8 }, run: function() {
+            st.flags.seats = "SRTM";
+          }, sayBy: "S", say: "Oh nee, ich hab meine Ruhe." }
+        ]
+      },
+      {
+        id: "turb",
+        title: "Turbulenzen",
+        text: "Es ruckelt. Der Kaffee hüpft im Becher.",
+        choices: [{ label: "Hände halten", fx: { all: 3 } }, { label: '„Wie Achterbahn!"', fx: { T: 6, M: 6, R: -6 }, sayBy: "T", say: "NOCHMAL!" }]
+      },
+      {
+        id: "herd",
+        cond: function() {
+          return F("herdWorry");
+        },
+        title: "Der Herd",
+        text: 'R beugt sich zu S: „Hast du eigentlich den Herd ausgemacht?" S: „Ja?"',
+        choices: [{ label: "Nach der Landung den Katzensitter fragen", fx: { R: -4 } }, { label: "Nicht dran denken", fx: { R: -10, S: 2 } }]
+      },
+      {
+        id: "baby",
+        title: "Reihe 25",
+        text: "Zwei Reihen weiter schreit ein Baby. Seit 20 Minuten.",
+        choices: [{ label: "Kopfhörer auf", fx: { R: 3, S: 2 } }, { label: "Grimassen schneiden", fx: { T: 4, M: 4 }, sayBy: "M", say: "Guck mal, das Baby lacht!" }]
+      },
+      {
+        id: "wc",
+        title: "Stau im Gang",
+        text: "M muss aufs Klo. Der Getränkewagen steht im Gang.",
+        choices: [{ label: "Warten", mins: 10, fx: { M: -8 } }, { label: "Durchquetschen", fx: { M: 3, R: -4 } }]
+      }
+    ],
+    finish: function(m) {
+      if (!T("ohren")) {
+        m.push({ bad: 1, t: "Beim Landeanflug drückt es auf den Ohren." });
+        fx({ T: -10, M: -10 });
+      }
+      if (!T("gurt")) {
+        m.push({ bad: 1, t: "Die Flugbegleiterin schnallt M persönlich an." });
+        fx({ M: -5 });
+      }
+      m.push({ good: 1, t: "Applaus bei der Landung. Draußen sind 31 Grad." });
+      fx({ all: 5 });
+    }
+  },
+  {
+    id: "beach",
+    name: "Strand & Hotel",
+    short: "Strand",
+    start: 420,
+    end: 1140,
+    endLabel: "Abendbuffet",
+    intro: "Nächster Morgen, 7:00 Uhr. Die Sonne scheint, das Meer glitzert. Wer zuerst ein Handtuch auf die Liegen legt, gewinnt den Tag.",
+    timeUp: "19:00 – Abendbuffet. Der erste Urlaubstag ist geschafft.",
+    tasks: [["liegen", "Liegen reserviert"], ["eincremen", "Eingecremt"], ["wlan", "WLAN-Passwort"], ["foto", "Familienfoto"]],
+    init: function() {
+      st.flags.sLie = 0;
+    },
+    actions: {
+      S: [
+        A("handtuch", "Um 7 Uhr Handtuch auf die Liegen", "🏖️", 15, { req: function() {
+          return st.t < 480 && !T("liegen");
+        }, task: "liegen", fx: { S: -8, R: 6 }, run: function() {
+          st.flags.sLie = 0;
+        }, say: "Erster! Vor allen anderen!" }),
+        A("liegesuche", "Liegen suchen", "🏖️", 30, { req: function() {
+          return st.t >= 480 && !T("liegen");
+        }, task: "liegen", fx: { S: -8 }, run: function() {
+          st.flags.sLie = 0;
+        }, say: "Nur noch zwei frei. Ganz hinten bei den Mülltonnen." }),
+        A("strandschlaf", "Am Strand schlafen", "😴", 60, { repeat: true, fx: out("S", { S: 14 }), run: function() {
+          burn("S")();
+          st.flags.sLie = 1;
+        }, say: "Krrr … Meeresrauschen …" }),
+        A("famfoto", "Familienfoto (10 Versuche)", "📸", 30, { task: "foto", fx: { S: 6, R: 4, T: -5, M: -8 }, run: function() {
+          st.fotos += 10;
+          st.flags.sLie = 0;
+        }, say: "Nochmal! M hat geblinzelt!" }),
+        A("bier", "Bier an der Strandbar", "🍺", 30, { repeat: true, fx: { S: 10, R: -2 }, run: function() {
+          st.flags.sLie = 0;
+        }, say: "Nur eins." })
+      ],
+      R: [
+        A("ausflug", "Ausflug planen", "🗺️", 20, { flag: "ausflug", fx: { R: 8, T: -4, M: -4 }, say: "Morgen: Altstadt, Museum, Leuchtturm!" }),
+        A("pool", "Hörbuch am Pool", "🎧", 60, { repeat: true, fx: { R: 14 }, say: "Kapitel 15. Endlich Ruhe." }),
+        A("eincremen", "Alle eincremen", "🧴", 15, {
+          lock: function() {
+            return T("creme") || F("cremeGekauft") ? "" : "Keine Sonnencreme dabei";
+          },
+          task: "eincremen",
+          fx: { R: 2, S: 2, T: -3, M: -3 },
+          say: "Stillhalten! Auch hinter den Ohren!"
+        }),
+        A("kaufen", "Sonnencreme im Hotelshop kaufen", "💸", 15, { req: function() {
+          return !T("creme") && !F("cremeGekauft");
+        }, flag: "cremeGekauft", fx: { R: -6, S: -3 }, say: "24 € für 50 ml. Das ist Wucher." }),
+        A("sitterfoto", "Fotos vom Katzensitter ansehen", "📱", 5, { fx: { R: 6, M: 3 }, say: "Nia schläft im Wäschekorb. Alles gut." })
+      ],
+      T: [
+        A("buffet", "Frühstücksbuffet plündern", "🥞", 30, { req: function() {
+          return st.t < 660;
+        }, fx: { T: 14, R: -2 }, say: "Vierter Teller. Die Pfannkuchen sind gratis!" }),
+        A("meer", "Ins Meer – noch 5 Minuten!", "🌊", 45, { repeat: true, fx: out("T", { T: 12, R: -3 }), run: burn("T"), say: "Noch fünf Minuten! Echt jetzt!" }),
+        A("wlan", "WLAN-Passwort jagen", "📶", 20, { task: "wlan", fx: { T: 6 }, say: "Steht hinten auf der Speisekarte: Sunny2026!" }),
+        A("zocken", "Im Hotel-WLAN zocken", "🎮", 30, { repeat: true, lock: function() {
+          return T("wlan") ? "" : "Kein WLAN-Passwort";
+        }, fx: { T: 10, R: -5 }, say: "Am Meer ist es auch schön … aber Minecraft!" })
+      ],
+      M: [
+        A("burg", "Sandburg bauen", "🏰", 45, { fx: out("M", { M: 12 }), flag: "burg", run: burn("M"), say: function() {
+          return F("fuffi") ? "Mit Burggraben und Fuffi-Turm!" : "Mit Burggraben!";
+        } }),
+        A("kicken", "Fußball am Strand", "⚽", 45, { repeat: true, fx: out("M", { M: 14 }), run: burn("M"), say: function() {
+          return F("ball") ? "Mein Ball ist der Beste!" : "Die anderen Kinder haben einen Ball!";
+        } }),
+        A("ketchupBuf", "Ketchup am Buffet suchen", "🍅", 15, { fx: function() {
+          return { M: F("ketchupLost") ? 14 : 8 };
+        }, say: "Sie haben KETCHUP!" }),
+        A("poolM", "Pool – noch 5 Minuten!", "🏊", 45, { repeat: true, fx: { M: 12, R: -3 }, say: "Meine Lippen sind nicht blau. Die sind lila!" })
+      ]
+    },
+    family: [A("abend", "Ab zum Abendbuffet", "🌅", 0, { advance: true, sub: "Beendet den Tag" })],
+    events: [
+      {
+        id: "keineLiegen",
+        force: true,
+        cond: function() {
+          return st.t >= 600 && !T("liegen");
+        },
+        title: "Alle Liegen weg",
+        text: "Um 10 Uhr liegt auf jeder Liege ein Handtuch. Nur nicht auf euren.",
+        choices: [{ label: "Dann eben im Sand", fx: { all: -5, S: -4 }, task: "liegen" }, { label: "Liege beim Pool erobern", fx: { R: -6 }, task: "liegen", sayBy: "R", say: "Die ist frei. Jetzt schon." }]
+      },
+      {
+        id: "moewe",
+        title: "Möwe!",
+        text: "Eine Möwe klaut T die Pommes direkt aus der Hand.",
+        choices: [{ label: "Möwe verfolgen", fx: { T: -6, M: 6 }, sayBy: "T", say: "GIB DIE ZURÜCK!" }, { label: "Neue Pommes holen", fx: { T: 4, S: -3 } }]
+      },
+      {
+        id: "sitterRuf",
+        cond: function() {
+          return F("sitterConfused");
+        },
+        title: "Anruf von zu Hause",
+        text: 'Der Katzensitter ruft an: „Welche ist jetzt Nala? Und warum miaut eine um sechs?"',
+        choices: [{ label: "R erklärt alles nochmal", mins: 15, fx: { R: -8 } }, { label: '„Nala läuft gegen Türen."', fx: { S: 4, R: -3 }, sayBy: "S", say: "Die, die gegen die Tür läuft." }]
+      },
+      {
+        id: "ausflugJetzt",
+        cond: function() {
+          return F("ausflug") && st.t >= 840;
+        },
+        title: "Planänderung",
+        text: 'R: „Kommt, wir machen den Ausflug einfach heute schon!"',
+        choices: [{ label: "Alle kommen mit", mins: 90, fx: { R: 14, T: -6, M: -6, S: -4 } }, { label: "Abstimmung: Pool!", fx: { R: -8, T: 6, M: 6 }, sayBy: "M", say: "Drei gegen eins!" }]
+      },
+      {
+        id: "ballweg",
+        cond: function() {
+          return F("ball");
+        },
+        title: "Ball ahoi",
+        text: "Der Fußball treibt aufs offene Meer hinaus.",
+        choices: [{ label: "S schwimmt hinterher", fx: { S: -8, M: 8 }, sayBy: "S", say: "Ich hab ihn! Ich hab ihn … fast." }, { label: "Tschüss, Ball", fx: { M: -8 } }]
+      },
+      {
+        id: "nelliFoto",
+        title: "Neues Foto von zu Hause",
+        text: "Der Katzensitter schickt ein Foto: Nelli sitzt im Kofferregal und guckt böse in die Kamera.",
+        choices: [{ label: "Herz zurückschicken", fx: { R: 4, M: 4, T: 2 } }]
+      }
+    ],
+    finish: function(m) {
+      var b = CH.filter(function(c) {
+        return F("burn" + c);
+      });
+      if (b.length) {
+        m.push({ bad: 1, t: "Sonnenbrand bei " + b.join(", ") + ". R holt die Après-Sun." });
+        fx({ R: -4 });
+      }
+      if (!T("foto")) m.push({ bad: 1, t: "Kein Familienfoto. Morgen dann. Zehn Versuche." });
+      m.push({ good: 1, t: 'Abendbuffet. M: „Haben die hier Ketchup?" Ja. Haben sie.' });
+      fx({ M: 5 });
+    }
+  }
+];
+var EV_OVER = {
+  id: "over",
+  title: "Übergepäck",
+  text: "Die Waage zeigt 31 kg. Erlaubt sind 23. Ts Koffer ist voller Lego.",
+  choices: [
+    { label: "60 € Übergepäck zahlen", fx: { S: -10, R: -4 }, sayBy: "S", say: "Sechzig Euro. Für Plastiksteine." },
+    { label: "Lego ins Handgepäck umpacken", mins: 10, fx: { T: -4 }, flag: "legoHand", sayBy: "T", say: "Vorsichtig! Das ist ein Raumschiff!" }
+  ]
+};
+function newGame() {
+  st = {
+    stage: 0,
+    sel: "R",
+    mood: { S: 70, R: 70, T: 70, M: 70 },
+    flags: {},
+    tasks: {},
+    done: {},
+    fired: {},
+    log: [],
+    bub: {},
+    pops: {},
+    acc: {},
+    hist: [],
+    aus: 0,
+    bald: 0,
+    fotos: 0,
+    t: 0,
+    queue: null
+  };
+  startStage(0);
+}
+function startStage(i) {
+  st.stage = i;
+  var S = cur();
+  st.t = S.start;
+  st.done = {};
+  st.fired = {};
+  st.acc = {};
+  st.bub = {};
+  st.pops = {};
+  if (S.init) S.init();
+  if (i === 0) addLog("6:00 · Mogli miaut. Wie jeden Morgen.");
+  render();
+  var html = '<span class="eyebrow">Etappe ' + (i + 1) + " von 4</span><h2>" + S.name + "</h2><p>" + S.intro + "</p><p><b>Aufgaben:</b> " + S.tasks.map(function(t) {
+    return t[1];
+  }).join(" · ") + '</p><div class="ch"><button class="btn pri" id="go">Los!</button></div>';
+  modal(html);
+  document.getElementById("go").onclick = function() {
+    closeModal();
+    snd("click");
+    if (S.startEvent) {
+      var e = S.events.filter(function(x) {
+        return x.id === S.startEvent;
+      })[0];
+      st.fired[e.id] = 1;
+      showEvent(e);
+    }
+  };
+}
+function addLog(t) {
+  st.log.unshift(t);
+  if (st.log.length > 30) st.log.pop();
+}
+function fxOf(a) {
+  return val(a.fx) || {};
+}
+function fx(o, c) {
+  for (var k in o) {
+    var targets = k === "all" ? CH : k === "sel" ? [c || st.sel] : [k];
+    for (var j = 0; j < targets.length; j++) {
+      var p = targets[j], v = o[k];
+      if (!v) continue;
+      st.mood[p] = Math.max(0, Math.min(100, st.mood[p] + v));
+      st.pops[p] = (st.pops[p] || 0) + v;
+      if (st.mood[p] <= 0) {
+        st.mood[p] = 25;
+        st.aus++;
+        st.bub[p] = MELT[p];
+        addLog(p + " rastet aus: „" + MELT[p] + '"');
+        snd("bad");
+      }
+    }
+  }
+}
+function drift(mins) {
+  var d = cur().drift;
+  if (!d) return;
+  var o = {};
+  for (var k in d) {
+    st.acc[k] = (st.acc[k] || 0) + d[k] * mins;
+    var w = st.acc[k] < 0 ? Math.ceil(st.acc[k]) : Math.floor(st.acc[k]);
+    if (w) {
+      o[k] = w;
+      st.acc[k] -= w;
+    }
+  }
+  fx(o);
+}
+function fxStr(o, c) {
+  var p = [];
+  for (var k in o) {
+    if (!o[k]) continue;
+    var n = k === "all" ? "Alle" : k === "sel" ? c || st.sel : k;
+    p.push(n + " " + (o[k] > 0 ? "+" : "−") + Math.abs(o[k]));
+  }
+  return p.join(" · ");
+}
+function avgMood() {
+  return Math.round((st.mood.S + st.mood.R + st.mood.T + st.mood.M) / 4);
+}
+function doAction(a) {
+  if (!st || st.busy) return;
+  var lk = a.lock && a.lock();
+  if (lk) return;
+  st.pops = {};
+  st.bub = {};
+  if (a.advance) {
+    snd("click");
+    endStage("adv");
+    return;
+  }
+  var c = st.sel, o = fxOf(a);
+  if (a.run) a.run(c);
+  st.t += a.mins;
+  if (a.task) st.tasks[a.task] = 1;
+  if (a.flag) st.flags[a.flag] = 1;
+  if (a.unflag) st.flags[a.unflag] = 0;
+  if (!a.repeat) st.done[a.id] = 1;
+  var s = val(a.say), by = val(a.sayBy) || c;
+  if (s) st.bub[by] = s;
+  addLog(hm(st.t) + " · " + c + ": " + a.label + (s ? " – „" + s + '"' : ""));
+  fx(o, c);
+  drift(a.mins);
+  var sum = 0;
+  for (var k in st.pops) sum += st.pops[k];
+  snd(/MIAU|miaut/i.test(s || "") ? "miau" : sum >= 0 ? "good" : "bad");
+  after(true);
+}
+function after(allowEvent) {
+  render();
+  if (st.queue) {
+    var e = st.queue;
+    st.queue = null;
+    showEvent(e);
+    return;
+  }
+  if (st.t >= cur().end) {
+    endStage("time");
+    return;
+  }
+  if (allowEvent) maybeEvent();
+}
+function maybeEvent() {
+  var S = cur(), forced = null, pool = [];
+  S.events.forEach(function(e2) {
+    if (st.fired[e2.id] || e2.id === S.startEvent) return;
+    if (e2.cond && !e2.cond()) return;
+    if (e2.force) {
+      if (!forced) forced = e2;
+    } else pool.push(e2);
+  });
+  var e = forced || (pool.length && Math.random() < 0.35 ? pool[Math.floor(Math.random() * pool.length)] : null);
+  if (e) {
+    st.fired[e.id] = 1;
+    setTimeout(function() {
+      showEvent(e);
+    }, 350);
+  }
+}
+function showEvent(e) {
+  st.busy = true;
+  if (/DING/.test(e.title)) snd("ding");
+  else if (/miau/i.test(e.title + val(e.text))) snd("miau");
+  else snd("click");
+  var ch = e.choices.filter(function(x) {
+    return !x.cond || x.cond();
+  });
+  var html = '<span class="eyebrow">' + hm(st.t) + " Uhr · Ereignis</span><h2>" + e.title + "</h2><p>" + val(e.text) + '</p><div class="ch">' + ch.map(function(x, i) {
+    var sub = [];
+    if (x.mins) sub.push("+" + x.mins + " min");
+    var f = fxStr(val(x.fx) || {});
+    if (f) sub.push(f);
+    return '<button class="btn" data-i="' + i + '">' + x.label + (sub.length ? "<small>" + sub.join(" · ") + "</small>" : "") + "</button>";
+  }).join("") + "</div>";
+  modal(html);
+  Array.prototype.forEach.call(document.querySelectorAll("#card .btn"), function(b) {
+    b.onclick = function() {
+      choose(e, ch[+b.getAttribute("data-i")]);
+    };
+  });
+}
+function choose(e, x) {
+  st.pops = {};
+  st.bub = {};
+  var c = st.sel;
+  if (e.run) e.run();
+  if (x.run) x.run(c);
+  if (x.mins) st.t += x.mins;
+  if (x.task) st.tasks[x.task] = 1;
+  if (x.flag) st.flags[x.flag] = 1;
+  var s = val(x.say);
+  if (s) st.bub[x.sayBy || c] = s;
+  addLog(hm(st.t) + " · " + e.title + ": " + x.label);
+  fx(val(x.fx) || {}, c);
+  if (x.mins) drift(x.mins);
+  st.busy = false;
+  closeModal();
+  snd("click");
+  after(false);
+}
+function endStage(reason) {
+  st.busy = true;
+  var S = cur(), m = [];
+  if (reason === "time") m.push({ bad: 1, t: S.timeUp });
+  else if (S.skipDrift && st.t < S.end) {
+    drift(S.end - st.t);
+    st.t = S.end;
+  }
+  st.pops = {};
+  S.finish(m);
+  var a = avgMood();
+  st.hist.push({ name: S.short, avg: a });
+  render();
+  var last = st.stage === STAGES.length - 1;
+  var html = '<span class="eyebrow">Etappe ' + (st.stage + 1) + " geschafft</span><h2>" + S.short + ": " + moodWord(a) + "</h2><ul>" + m.map(function(x) {
+    return '<li class="' + (x.bad ? "bad" : x.good ? "good" : "") + '">' + x.t + "</li>";
+  }).join("") + "</ul>" + moodsHtml() + '<div class="ch"><button class="btn pri" id="nx">' + (last ? "Zur Urlaubsbilanz" : "Weiter: " + STAGES[st.stage + 1].name) + "</button></div>";
+  modal(html);
+  snd(a >= 50 ? "good" : "bad");
+  document.getElementById("nx").onclick = function() {
+    closeModal();
+    st.busy = false;
+    if (last) final();
+    else startStage(st.stage + 1);
+  };
+}
+function moodWord(a) {
+  return a >= 75 ? "Urlaubslaune pur" : a >= 55 ? "Läuft" : a >= 35 ? "Etwas angespannt" : "Nervenzusammenbruch";
+}
+function moodsHtml() {
+  return '<div class="moods">' + CH.map(function(c) {
+    return '<div><b style="color:' + barCol(st.mood[c]) + '">' + st.mood[c] + "</b>" + c + "</div>";
+  }).join("") + "</div>";
+}
+function barCol(v) {
+  return v >= 60 ? "#6fd38b" : v >= 30 ? "#ffc857" : "#ff6b6b";
+}
+function final() {
+  var tot = 0, n = 0;
+  for (var k in st.tasks) {
+    if (st.tasks[k]) n++;
+  }
+  st.hist.forEach(function(h) {
+    tot += h.avg;
+  });
+  var score = Math.max(0, Math.round(tot / st.hist.length) + n * 2 - st.aus * 5);
+  var title = score >= 85 ? "Traumurlaub" : score >= 70 ? "Schöner Urlaub" : score >= 55 ? "Urlaub mit Höhen und Tiefen" : score >= 40 ? "Nächstes Jahr Balkonien" : "Wir fahren nie wieder weg";
+  var best = 0;
+  try {
+    best = +localStorage.getItem("fcu-best") || 0;
+    if (score > best) localStorage.setItem("fcu-best", score);
+  } catch (e) {
+  }
+  var html = '<span class="eyebrow">Urlaubsbilanz</span><h2>' + title + '</h2><div class="big">' + score + "</div><ul>" + st.hist.map(function(h) {
+    return "<li>" + h.name + ": Laune " + h.avg + "</li>";
+  }).join("") + "<li>Erledigte Aufgaben: " + n + " (+" + n * 2 + ")</li>" + (st.aus ? '<li class="bad">Ausraster: ' + st.aus + " (−" + st.aus * 5 + ")</li>" : "") + '<li>„Sind wir bald da?": ' + st.bald + "×</li><li>Fotoversuche von S: " + st.fotos + "</li>" + (F("ketchupLost") ? "<li>Ketchup-Verluste: 1 Flasche</li>" : "") + "</ul>" + (score > best ? "<p><b>Neuer Rekord!</b></p>" : best ? "<p>Rekord: " + best + "</p>" : "") + '<div class="ch"><button class="btn pri" id="again">Nochmal verreisen</button></div>';
+  modal(html);
+  snd("win");
+  document.getElementById("again").onclick = function() {
+    closeModal();
+    newGame();
+  };
+}
+function personRaw(c, o) {
+  o = o || {};
+  var m = st ? st.mood[c] : 70, big = c === "M", hr = big ? 24 : 20, hy = big ? -98 : -92, I = INFO[c];
+  var skin = o.burn ? "#ef8b78" : "#f1c7a2", s = "";
+  if (c === "R") s += '<path d="M-24,' + (hy + 2) + " Q-27," + (hy - 26) + " 0," + (hy - 26) + " Q27," + (hy - 26) + " 24," + (hy + 2) + ' L25,-56 Q0,-50 -25,-56Z" fill="' + I.hair + '"/>';
+  if (!o.seat) {
+    s += '<rect x="-14" y="-32" width="12" height="32" rx="5" fill="#39405a"/><rect x="2" y="-32" width="12" height="32" rx="5" fill="#39405a"/>';
+    s += '<ellipse cx="-8" cy="0" rx="9" ry="4" fill="#20243a"/><ellipse cx="8" cy="0" rx="9" ry="4" fill="#20243a"/>';
+  }
+  s += '<rect x="-29" y="-70" width="11" height="34" rx="5.5" fill="' + I.shirt + '"/><rect x="18" y="-70" width="11" height="34" rx="5.5" fill="' + I.shirt + '"/>';
+  s += '<circle cx="-23.5" cy="-35" r="5" fill="' + skin + '"/><circle cx="23.5" cy="-35" r="5" fill="' + skin + '"/>';
+  s += '<rect x="-20" y="-75" width="40" height="49" rx="13" fill="' + I.shirt + '"/>';
+  if (c === "T") s += '<polygon points="0,-62 3,-55 10,-55 4.5,-50.5 6.5,-43.5 0,-47.5 -6.5,-43.5 -4.5,-50.5 -10,-55 -3,-55" fill="#ffd34d"/>';
+  if (c === "M") s += '<circle cx="0" cy="-52" r="6.5" fill="#f2b84e"/><ellipse cx="0" cy="-52" rx="11" ry="3.5" fill="none" stroke="#9fd0ff" stroke-width="2"/>';
+  if (c === "R") s += '<path d="M-8,-73 Q0,-64 8,-73" fill="none" stroke="#fff" stroke-width="1.6" opacity=".7"/>';
+  if (c === "S") s += '<rect x="5" y="-66" width="9" height="8" rx="2" fill="none" stroke="#2c5fa8" stroke-width="1.6"/>';
+  s += '<circle cx="0" cy="' + hy + '" r="' + hr + '" fill="' + skin + '"/>';
+  var top = hy - hr - 4, col = I.hair;
+  if (c === "R") s += '<path d="M' + (-hr - 1) + "," + (hy - 1) + " Q" + -hr + "," + top + " 0," + top + " Q" + hr + "," + top + " " + (hr + 1) + "," + (hy - 1) + " Q" + (hr - 2) + "," + (hy - 12) + " 4," + (hy - 13) + " Q-10," + (hy - 11) + " " + (-hr - 1) + "," + (hy - 1) + 'Z" fill="' + col + '"/>';
+  else s += '<path d="M' + (-hr - 1) + "," + (hy - 2) + " Q" + -hr + "," + top + " 0," + top + " Q" + hr + "," + top + " " + (hr + 1) + "," + (hy - 2) + " Q" + (hr - 5) + "," + (hy - 13) + " 0," + (hy - 12) + " Q" + (-hr + 5) + "," + (hy - 14) + " " + (-hr - 1) + "," + (hy - 2) + 'Z" fill="' + col + '"/>';
+  if (c === "S") s += '<path d="M-12,' + (top + 5) + " q4,3 8,1 M4," + (top + 4) + ' q4,3 8,1" stroke="#8d9097" stroke-width="2" fill="none"/>';
+  if (c === "T") s += '<path d="M-6,' + (top + 1) + " l3,-6 l3,6 M2," + (top + 1) + ' l4,-5 l2,6" fill="' + col + '" stroke="' + col + '" stroke-width="2"/>';
+  var ex = big ? 8 : 7;
+  if (o.sleep) s += '<path d="M' + (-ex - 4) + "," + hy + " h7 M" + (ex - 3) + "," + hy + ' h7" stroke="#2a2230" stroke-width="2"/>';
+  else s += '<circle cx="' + -ex + '" cy="' + hy + '" r="2.2" fill="#2a2230"/><circle cx="' + ex + '" cy="' + hy + '" r="2.2" fill="#2a2230"/>';
+  s += '<circle cx="' + -ex + '" cy="' + hy + '" r="6.5" fill="rgba(255,255,255,.15)" stroke="#1e1e26" stroke-width="2"/><circle cx="' + ex + '" cy="' + hy + '" r="6.5" fill="rgba(255,255,255,.15)" stroke="#1e1e26" stroke-width="2"/><line x1="-0.5" y1="' + hy + '" x2="0.5" y2="' + hy + '" stroke="#1e1e26" stroke-width="2"/>';
+  var my = hy + 11;
+  if (o.sleep) s += '<ellipse cx="0" cy="' + (my + 1) + '" rx="3.5" ry="4.5" fill="#7a3b3b"/>';
+  else if (m >= 66) s += '<path d="M-7,' + my + " Q0," + (my + 8) + " 7," + my + '" fill="none" stroke="#7a3b3b" stroke-width="2.4" stroke-linecap="round"/>';
+  else if (m >= 33) s += '<line x1="-6" y1="' + (my + 2) + '" x2="6" y2="' + (my + 2) + '" stroke="#7a3b3b" stroke-width="2.4" stroke-linecap="round"/>';
+  else s += '<path d="M-7,' + (my + 5) + " Q0," + (my - 3) + " 7," + (my + 5) + '" fill="none" stroke="#7a3b3b" stroke-width="2.4" stroke-linecap="round"/>';
+  return s;
+}
+function headTop(c) {
+  return c === "M" ? 126 : 116;
+}
+function cat(x, y, col, s, lie) {
+  var g = '<g transform="translate(' + x + "," + y + ") scale(" + s + ')">', f = "#c5c9d1", d = "#9ca1ab";
+  if (lie) {
+    g += '<path d="M24,-8 q22,-4 18,-16" stroke="' + f + '" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    g += '<ellipse cx="0" cy="-10" rx="28" ry="12" fill="' + f + '"/><circle cx="-24" cy="-17" r="11" fill="' + f + '"/>';
+    g += '<polygon points="-33,-23 -31,-35 -24,-26" fill="' + f + '"/><polygon points="-21,-26 -15,-34 -14,-22" fill="' + f + '"/>';
+    g += '<path d="M-30,-16 q3,2 6,0 M-21,-16 q3,2 6,0" stroke="#3a3d45" stroke-width="1.6" fill="none"/>';
+    g += '<rect x="-17" y="-12" width="5" height="9" rx="2" fill="' + col + '"/>';
+  } else {
+    g += '<path d="M12,-6 q20,0 14,-24" stroke="' + f + '" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    g += '<ellipse cx="0" cy="-18" rx="15" ry="19" fill="' + f + '"/><circle cx="0" cy="-44" r="12" fill="' + f + '"/>';
+    g += '<polygon points="-11,-49 -9,-62 -2,-54" fill="' + f + '"/><polygon points="11,-49 9,-62 2,-54" fill="' + f + '"/>';
+    g += '<polygon points="-9,-51 -8,-58 -4,-54" fill="' + d + '"/><polygon points="9,-51 8,-58 4,-54" fill="' + d + '"/>';
+    g += '<circle cx="-4.5" cy="-45" r="2" fill="#3a3d45"/><circle cx="4.5" cy="-45" r="2" fill="#3a3d45"/><path d="M-2,-40 l2,2 l2,-2" stroke="#3a3d45" stroke-width="1.4" fill="none"/>';
+    g += '<rect x="-9" y="-35" width="18" height="4" rx="2" fill="' + col + '"/>';
+  }
+  return g + "</g>";
+}
+var COL = { Nia: "#ff8fc4", Nelli: "#e94848", Nala: "#ffd24d", Mogli: "#4f86e8" };
+function fuffi(x, y, s) {
+  return '<g transform="translate(' + x + "," + y + ") scale(" + s + ')"><ellipse cx="0" cy="-26" rx="26" ry="26" fill="#d2a679"/><circle cx="0" cy="-66" r="22" fill="#d2a679"/><ellipse cx="-22" cy="-60" rx="8" ry="17" fill="#8d6340"/><ellipse cx="22" cy="-60" rx="8" ry="17" fill="#8d6340"/><ellipse cx="0" cy="-58" rx="10" ry="7" fill="#f1dcc0"/><circle cx="0" cy="-62" r="4" fill="#2b2020"/><circle cx="-8" cy="-71" r="2.6" fill="#2b2020"/><circle cx="8" cy="-71" r="2.6" fill="#2b2020"/><ellipse cx="-14" cy="-2" rx="9" ry="6" fill="#c0946a"/><ellipse cx="14" cy="-2" rx="9" ry="6" fill="#c0946a"/></g>';
+}
+function suitcase(x, y) {
+  var s = "", closed = T("koffer"), lego = F("lego");
+  if (!closed) {
+    s += '<rect x="' + x + '" y="' + (y - 48) + '" width="116" height="48" rx="8" fill="#257068"/><rect x="' + (x + 6) + '" y="' + (y - 42) + '" width="104" height="38" rx="5" fill="#1d5852"/>';
+    s += '<rect x="' + x + '" y="' + y + '" width="116" height="56" rx="8" fill="#2f8f85"/>';
+    s += '<rect x="' + (x + 8) + '" y="' + (y - 6) + '" width="34" height="14" rx="4" fill="#ffb3cf"/><rect x="' + (x + 40) + '" y="' + (y - 10) + '" width="38" height="16" rx="4" fill="#9fd0ff"/><rect x="' + (x + 76) + '" y="' + (y - 5) + '" width="30" height="12" rx="4" fill="#fff1a8"/>';
+    if (lego) s += bricks(x + 20, y - 14);
+    if (T("packed") && !st.fired.nia) s += cat(x + 60, y + 14, COL.Nia, 0.62, true);
+  } else {
+    s += '<rect x="' + (x + 40) + '" y="' + (y - 12) + '" width="36" height="14" rx="6" fill="none" stroke="#1d5852" stroke-width="6"/>';
+    s += '<rect x="' + x + '" y="' + y + '" width="116" height="56" rx="8" fill="#2f8f85"/><rect x="' + (x + 30) + '" y="' + y + '" width="8" height="56" fill="#1d5852"/><rect x="' + (x + 78) + '" y="' + y + '" width="8" height="56" fill="#1d5852"/>';
+    if (lego) {
+      s += bricks(x + 40, y - 8) + '<rect x="' + (x + 88) + '" y="' + (y + 16) + '" width="40" height="18" rx="3" fill="#fff" transform="rotate(8 ' + (x + 108) + " " + (y + 25) + ')"/><text x="' + (x + 108) + '" y="' + (y + 30) + '" font-size="11" font-weight="800" text-anchor="middle" fill="#c0392b" font-family="Nunito" transform="rotate(8 ' + (x + 108) + " " + (y + 25) + ')">40 kg</text>';
+    }
+  }
+  return s;
+}
+function bricks(x, y) {
+  var cs = ["#e53935", "#fdd835", "#1e88e5", "#43a047", "#fb8c00"], s = "";
+  for (var i = 0; i < 5; i++) s += '<rect x="' + (x + i * 15) + '" y="' + (y - i % 2 * 7) + '" width="14" height="10" rx="1.5" fill="' + cs[i] + '"/><rect x="' + (x + i * 15 + 3) + '" y="' + (y - i % 2 * 7 - 3) + '" width="3" height="3" fill="' + cs[i] + '"/><rect x="' + (x + i * 15 + 8) + '" y="' + (y - i % 2 * 7 - 3) + '" width="3" height="3" fill="' + cs[i] + '"/>';
+  return s;
+}
+function clockFace(cx, cy, r) {
+  var h = st.t / 60 % 12 * 30, mi = st.t % 60 * 6, rad = function(a) {
+    return (a - 90) * Math.PI / 180;
+  };
+  return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#f4efe4" stroke="#c9b48a" stroke-width="4"/><line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + Math.cos(rad(h)) * r * 0.5) + '" y2="' + (cy + Math.sin(rad(h)) * r * 0.5) + '" stroke="#2a2a33" stroke-width="3.5" stroke-linecap="round"/><line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + Math.cos(rad(mi)) * r * 0.8) + '" y2="' + (cy + Math.sin(rad(mi)) * r * 0.8) + '" stroke="#2a2a33" stroke-width="2" stroke-linecap="round"/>';
+}
+var SCENES = {
+  home: function() {
+    var dawn = st.t < 420, s = "";
+    s += '<defs><linearGradient id="gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + (dawn ? "#3b3f7a" : "#79c2ee") + '"/><stop offset="1" stop-color="' + (dawn ? "#ff9e6d" : "#d5eef9") + '"/></linearGradient></defs>';
+    s += '<rect width="800" height="340" fill="#2d2846"/>';
+    for (var i = 0; i < 800; i += 40) s += '<rect x="' + i + '" y="0" width="20" height="262" fill="#322c50"/>';
+    s += '<rect y="262" width="800" height="78" fill="#5b4334"/><rect y="257" width="800" height="7" fill="#43314a"/>';
+    for (i = 60; i < 900; i += 110) s += '<line x1="' + i + '" y1="264" x2="' + (i - 40) + '" y2="340" stroke="#4d382b" stroke-width="2"/>';
+    s += '<rect x="330" y="34" width="150" height="104" rx="6" fill="url(#gw)" stroke="#e8e1d2" stroke-width="6"/>';
+    s += '<circle cx="445" cy="' + (dawn ? 126 : 68) + '" r="14" fill="#ffd36b"/><line x1="405" y1="34" x2="405" y2="138" stroke="#e8e1d2" stroke-width="4"/>';
+    s += '<rect x="322" y="136" width="166" height="10" rx="3" fill="#e8e1d2"/>' + cat(362, 138, COL.Mogli, 0.62);
+    s += clockFace(560, 66, 24);
+    s += '<rect x="24" y="166" width="96" height="96" rx="6" fill="#cfd3da"/><rect x="24" y="166" width="96" height="16" fill="#b5bac3"/><rect x="36" y="196" width="72" height="50" rx="4" fill="#2b2f38"/>';
+    for (i = 0; i < 4; i++) s += '<circle cx="' + (40 + i * 21) + '" cy="174" r="4" fill="#5a5f6a"/>';
+    s += '<ellipse cx="50" cy="164" rx="16" ry="4" fill="#3b3f48"/><ellipse cx="94" cy="164" rx="16" ry="4" fill="#3b3f48"/>';
+    if (!T("herd")) s += '<ellipse class="glow" cx="50" cy="163" rx="13" ry="3" fill="#ff5a3c"/>';
+    s += '<rect x="134" y="184" width="26" height="78" rx="10" fill="#5c4692"/><rect x="292" y="184" width="26" height="78" rx="10" fill="#5c4692"/><rect x="140" y="204" width="172" height="58" rx="14" fill="#6c55a3"/><rect x="152" y="174" width="148" height="36" rx="12" fill="#7d66b6"/>';
+    if (!T("packed")) s += '<rect x="236" y="284" width="40" height="30" fill="#fffdf2" transform="rotate(-8 256 299)"/>' + cat(258, 300, COL.Nala, 0.55, true);
+    else s += cat(150, 312, COL.Nala, 0.6);
+    s += cat(asleep() ? 300 : 262, 206, COL.Nelli, 0.6, true);
+    s += '<rect x="680" y="84" width="92" height="178" rx="4" fill="#7a5233"/><rect x="690" y="96" width="72" height="70" rx="3" fill="#8a603e"/><rect x="690" y="176" width="72" height="76" rx="3" fill="#8a603e"/><circle cx="756" cy="176" r="5" fill="#f0c14b"/>';
+    s += '<g transform="rotate(-6 722 124)"><rect x="698" y="108" width="50" height="32" fill="#ffe27a"/><text x="723" y="128" font-size="10" font-weight="800" text-anchor="middle" fill="#5a4400" font-family="Nunito">TAXI 8:00</text></g>';
+    if (F("sitterHere")) s += '<text x="726" y="78" font-size="11" font-weight="800" text-anchor="middle" fill="#ffc857" font-family="Nunito">Katzensitter ist da</text>';
+    s += suitcase(392, 212);
+    if (F("fuffi")) s += fuffi(728, 330, 0.9);
+    if (asleep()) s += '<g transform="translate(316,236) rotate(-90) scale(.78)">' + personRaw("S", { sleep: true, seat: true }) + '</g><text x="190" y="166" font-family="Fredoka" font-size="22" fill="#cfd3ff" class="bob">z Z z</text>';
+    return s;
+  },
+  airport: function() {
+    var s = '<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fb8e8"/><stop offset="1" stop-color="#cbe8f6"/></linearGradient></defs>';
+    s += '<rect width="800" height="340" fill="#23283f"/><rect x="380" y="18" width="410" height="132" rx="6" fill="url(#ga)"/>';
+    for (var i = 380; i < 790; i += 82) s += '<rect x="' + i + '" y="18" width="5" height="132" fill="#3b4160"/>';
+    s += '<g class="fly"><path d="M440,80 l60,-4 l14,-12 l6,0 l-6,14 l26,-2 l8,-8 l5,0 l-3,10 l-3,10 l-5,0 l-8,-8 l-26,-2 l6,14 l-6,0 l-14,-12 l-60,-4Z" fill="#f4f5f8"/></g>';
+    s += '<rect y="250" width="800" height="90" fill="#3a3e55"/>';
+    for (i = 0; i < 800; i += 80) s += '<line x1="' + i + '" y1="250" x2="' + (i - 20) + '" y2="340" stroke="#33374c" stroke-width="2"/>';
+    s += '<rect x="24" y="20" width="330" height="108" rx="6" fill="#0d1020" stroke="#3b4160" stroke-width="3"/>';
+    var rows = [["LONDON", "9:40", "GESTARTET"], ["STRAND", "11:00", F("gateD") ? "GATE D47" : "GATE B12"], ["OSLO", "11:20", "PÜNKTLICH"]];
+    rows.forEach(function(r, j) {
+      var y = 50 + j * 28, hl = r[0] === "STRAND";
+      s += '<text x="38" y="' + y + '" font-family="ui-monospace,Menlo,monospace" font-size="15" font-weight="700" fill="' + (hl ? "#ffc857" : "#e6d27a") + '">' + r[0] + '</text><text x="150" y="' + y + '" font-family="ui-monospace,Menlo,monospace" font-size="15" fill="#e6d27a">' + r[1] + '</text><text x="224" y="' + y + '" font-family="ui-monospace,Menlo,monospace" font-size="13" fill="' + (hl && F("gateD") ? "#ff6b6b" : "#e6d27a") + '">' + r[2] + "</text>";
+    });
+    s += '<rect x="430" y="178" width="160" height="84" rx="6" fill="#d6d8de"/><rect x="430" y="170" width="160" height="14" rx="4" fill="#b0b4bf"/><rect x="456" y="150" width="46" height="26" rx="3" fill="#2d3350"/><text x="510" y="226" font-family="Fredoka" font-size="16" text-anchor="middle" fill="#3a3e55">CHECK-IN</text>';
+    var kg = T("checkin") ? "0" : F("lego") && !F("legoHand") ? "31" : "21";
+    s += '<rect x="596" y="244" width="62" height="10" rx="2" fill="#8a8fa0"/><rect x="606" y="210" width="42" height="22" rx="3" fill="#0d1020"/><text x="627" y="226" font-family="ui-monospace,Menlo,monospace" font-size="13" text-anchor="middle" fill="' + (kg === "31" ? "#ff6b6b" : "#6fd38b") + '">' + kg + " kg</text>";
+    s += '<path d="M690,262 V118 Q690,104 704,104 H756 Q770,104 770,118 V262" fill="none" stroke="#8d93a8" stroke-width="12"/><circle cx="730" cy="96" r="6" fill="' + (T("security") ? "#6fd38b" : "#ff6b6b") + '"/>';
+    if (F("fuffi")) s += fuffi(450, 330, 0.55);
+    return s;
+  },
+  plane: function() {
+    var s = '<defs><linearGradient id="gp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#bfe3f7"/></linearGradient><clipPath id="win"><ellipse cx="50" cy="150" rx="22" ry="34"/><ellipse cx="216" cy="70" rx="18" ry="26"/><ellipse cx="400" cy="70" rx="18" ry="26"/><ellipse cx="584" cy="70" rx="18" ry="26"/><ellipse cx="760" cy="70" rx="18" ry="26"/></clipPath></defs>';
+    s += '<rect width="800" height="340" fill="#d7d0c1"/><rect width="800" height="36" fill="#ece7dc"/><rect y="34" width="800" height="4" fill="#c2baa8"/>';
+    s += '<g clip-path="url(#win)"><rect width="800" height="200" fill="url(#gp)"/><g class="drift">';
+    for (var i = 0; i < 6; i++) s += '<ellipse cx="' + (i * 160 + 40) + '" cy="' + (i % 2 ? 150 : 72) + '" rx="30" ry="10" fill="#fff" opacity=".9"/>';
+    s += "</g></g>";
+    [[50, 150, 22, 34], [216, 70, 18, 26], [400, 70, 18, 26], [584, 70, 18, 26], [760, 70, 18, 26]].forEach(function(w) {
+      s += '<ellipse cx="' + w[0] + '" cy="' + w[1] + '" rx="' + w[2] + '" ry="' + w[3] + '" fill="none" stroke="#f5f1e8" stroke-width="6"/>';
+    });
+    s += '<g transform="translate(392,8)"><rect width="34" height="20" rx="4" fill="#222"/><text x="17" y="15" font-size="12" text-anchor="middle" fill="' + (T("gurt") ? "#555" : "#ffb347") + '" ' + (T("gurt") ? "" : 'class="glow"') + ">🔒</text></g>";
+    s += '<rect y="300" width="800" height="40" fill="#5d5a66"/>';
+    return s;
+  },
+  beach: function() {
+    var eve = st.t >= 1020, morn = st.t < 540;
+    var s = '<defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + (eve ? "#f08a5d" : morn ? "#9fd6f0" : "#5ec2ec") + '"/><stop offset="1" stop-color="' + (eve ? "#ffd28a" : "#d9f2fb") + '"/></linearGradient></defs>';
+    s += '<rect width="800" height="340" fill="url(#gs)"/>';
+    var sy = eve ? 120 : morn ? 90 : 44;
+    s += '<circle cx="690" cy="' + sy + '" r="26" fill="#ffd34d"/><circle cx="690" cy="' + sy + '" r="36" fill="#ffd34d" opacity=".25"/>';
+    s += '<path class="fly" d="M80,60 q8,-8 16,0 q8,-8 16,0" stroke="#3a3d45" stroke-width="2.4" fill="none"/>';
+    s += '<rect y="150" width="800" height="62" fill="' + (eve ? "#2f7fa6" : "#2a8fb8") + '"/>';
+    s += '<g class="wave"><path d="M-20,168 q20,-8 40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0 t40,0" stroke="#bfeaf7" stroke-width="2.5" fill="none" opacity=".7"/></g>';
+    s += '<path d="M0,208 Q200,196 400,206 T800,204 V340 H0Z" fill="#ead096"/>';
+    s += '<rect x="0" y="40" width="200" height="190" fill="#f3e3c6"/><rect x="0" y="40" width="200" height="14" fill="#e07a5f"/><text x="100" y="80" text-anchor="middle" font-family="Fredoka" font-size="16" fill="#c0563f">HOTEL SONNE</text>';
+    for (var i = 0; i < 3; i++) for (var j = 0; j < 2; j++) s += '<rect x="' + (22 + i * 58) + '" y="' + (94 + j * 48) + '" width="36" height="30" rx="3" fill="#8fc9e0"/>';
+    s += '<rect x="10" y="232" width="190" height="40" rx="6" fill="#4fc6e6" stroke="#fff" stroke-width="5"/>';
+    s += '<rect x="236" y="120" width="10" height="100" rx="4" fill="#8a6240" transform="rotate(6 241 170)"/><path d="M246,122 q-40,-10 -60,14 M246,122 q40,-12 58,12 M246,122 q-20,-26 -46,-26 M246,122 q20,-26 46,-24" stroke="#3f9b52" stroke-width="10" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M560,190 Q610,150 660,190Z" fill="#ff7a59"/><path d="M585,190 Q610,160 635,190Z" fill="#fff" opacity=".5"/><rect x="608" y="186" width="4" height="96" fill="#7a5233"/>';
+    [[520, 276], [640, 276]].forEach(function(l, k) {
+      s += '<rect x="' + l[0] + '" y="' + l[1] + '" width="110" height="10" rx="4" fill="#fff"/><rect x="' + (l[0] + 8) + '" y="' + (l[1] + 10) + '" width="5" height="18" fill="#bbb"/><rect x="' + (l[0] + 96) + '" y="' + (l[1] + 10) + '" width="5" height="18" fill="#bbb"/>';
+      if (T("liegen")) s += '<rect x="' + (l[0] + 6) + '" y="' + (l[1] - 4) + '" width="98" height="8" rx="3" fill="' + (k ? "#ff8fc4" : "#4f86e8") + '"/>';
+    });
+    if (F("burg")) s += '<path d="M440,300 h46 v-22 h-8 v6 h-8 v-12 h-10 v12 h-8 v-6 h-12Z" fill="#d9b874"/><path d="M459,266 v-10 l8,4 l-8,4" fill="#e53935" stroke="#7a5233"/>';
+    if (F("ball") && !st.fired.ballweg) s += '<circle cx="372" cy="318" r="10" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="372" cy="318" r="3.5" fill="#333"/>';
+    if (F("fuffi")) s += fuffi(492, 326, 0.5);
+    if (F("sLie")) s += '<g transform="translate(626,268) rotate(-90) scale(.72)">' + personRaw("S", { sleep: true, seat: true, burn: F("burnS") }) + '</g><text x="560" y="230" font-family="Fredoka" font-size="20" fill="#3a3d45" class="bob">z Z z</text>';
+    return s;
+  }
+};
+var POS = {
+  home: { S: [200, 302], T: [322, 306], R: [560, 304], M: [636, 308] },
+  airport: { S: [110, 306], R: [200, 306], T: [290, 308], M: [370, 310] },
+  beach: { R: [110, 300], T: [318, 310], M: [420, 316], S: [700, 310] }
+};
+function figures() {
+  var S = cur(), s = "", pos;
+  if (S.id === "plane") {
+    var order = (st.flags.seats || "TMRS").split(""), xs = [130, 300, 470, 640];
+    pos = {};
+    order.forEach(function(c, i) {
+      pos[c] = [xs[i], 298];
+    });
+    order.forEach(function(c, i) {
+      var x = xs[i];
+      s += '<rect x="' + (x - 50) + '" y="150" width="100" height="160" rx="20" fill="#2d4f8a"/><rect x="' + (x - 34) + '" y="156" width="68" height="20" rx="6" fill="#e9e6df"/>';
+    });
+    order.forEach(function(c, i) {
+      var x = xs[i];
+      var sl = c === "S" && st.bub.S && /Krr/.test(st.bub.S);
+      s += fig(c, x, 298, 1, { seat: true, sleep: sl });
+      s += '<rect x="' + (x - 50) + '" y="276" width="100" height="34" rx="10" fill="#26457a"/><rect x="' + (x - 58) + '" y="258" width="12" height="40" rx="5" fill="#1e3866"/><rect x="' + (x + 46) + '" y="258" width="12" height="40" rx="5" fill="#1e3866"/>';
+    });
+    if (F("fuffi")) s += fuffi(744, 300, 0.45);
+  } else {
+    pos = POS[S.id];
+    CH.forEach(function(c) {
+      if (S.id === "home" && c === "S" && asleep()) return;
+      if (S.id === "beach" && c === "S" && F("sLie")) return;
+      s += fig(c, pos[c][0], pos[c][1], 1, { burn: F("burn" + c) });
+    });
+  }
+  CH.forEach(function(c) {
+    var p = pos[c];
+    if (!p) return;
+    var x = p[0], y = p[1] - headTop(c);
+    if (S.id === "home" && c === "S" && asleep()) {
+      x = 232;
+      y = 150;
+    }
+    if (S.id === "beach" && c === "S" && F("sLie")) {
+      x = 600;
+      y = 236;
+    }
+    if (st.pops[c]) s += '<text class="pop" x="' + (x + 26) + '" y="' + (y + 6) + '" fill="' + (st.pops[c] > 0 ? "#6fd38b" : "#ff6b6b") + '" stroke="#151829" stroke-width="3" paint-order="stroke">' + (st.pops[c] > 0 ? "+" : "−") + Math.abs(st.pops[c]) + "</text>";
+    if (st.bub[c]) s += bubble(x, y - 6, st.bub[c]);
+  });
+  return s;
+}
+function fig(c, x, y, sc, o) {
+  var sel = st.sel === c, s = "";
+  if (sel && !o.seat) s += '<ellipse cx="' + x + '" cy="' + (y + 2) + '" rx="30" ry="7" fill="none" stroke="#ffc857" stroke-width="3" stroke-dasharray="6 4"/>';
+  if (sel && o.seat) s += '<rect x="' + (x - 44) + '" y="164" width="88" height="6" rx="3" fill="#ffc857"/>';
+  return s + '<g transform="translate(' + x + "," + y + ") scale(" + sc + ')"><g' + (sel ? ' class="bob"' : "") + ">" + personRaw(c, o) + "</g></g>";
+}
+function bubble(x, y, t) {
+  var words = t.split(" "), lines = [""], max = 24;
+  words.forEach(function(w2) {
+    var l = lines[lines.length - 1];
+    if ((l + " " + w2).trim().length > max && l) lines.push(w2);
+    else lines[lines.length - 1] = (l + " " + w2).trim();
+  });
+  if (lines.length > 3) {
+    lines = lines.slice(0, 3);
+    lines[2] += "…";
+  }
+  var w = Math.max.apply(null, lines.map(function(l) {
+    return l.length;
+  })) * 6.9 + 20, h = lines.length * 15 + 12;
+  var bx = Math.max(4, Math.min(796 - w, x - w / 2)), by = Math.max(4, y - h - 10);
+  var s = '<g><path d="M' + (x - 7) + "," + (by + h - 1) + " L" + x + "," + (by + h + 10) + " L" + (x + 7) + "," + (by + h - 1) + 'Z" fill="#fffaf0"/><rect x="' + bx + '" y="' + by + '" width="' + w + '" height="' + h + '" rx="10" fill="#fffaf0" stroke="#2a2a33" stroke-width="1.5"/>';
+  lines.forEach(function(l, i) {
+    s += '<text x="' + (bx + w / 2) + '" y="' + (by + 19 + i * 15) + '" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="800" font-size="12.5" fill="#2a2a33">' + esc(l) + "</text>";
+  });
+  return s + "</g>";
+}
+function esc(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function render() {
+  var S = cur();
+  document.getElementById("stname").textContent = S.name;
+  document.getElementById("dots").innerHTML = STAGES.map(function(x, i) {
+    return '<i class="' + (i < st.stage ? "done" : i === st.stage ? "on" : "") + '"></i>';
+  }).join("");
+  document.getElementById("clock").textContent = hm(st.t);
+  document.getElementById("deadline").textContent = S.endLabel + " " + hm(S.end);
+  document.getElementById("scene").innerHTML = SCENES[S.id]() + figures();
+  document.getElementById("log").innerHTML = st.log.slice(0, 3).map(function(l) {
+    return "<p>" + esc(l) + "</p>";
+  }).join("");
+  document.getElementById("tasks").innerHTML = S.tasks.map(function(t) {
+    return '<span class="chip' + (T(t[0]) ? " ok" : "") + '">' + (T(t[0]) ? "✓ " : "") + t[1] + "</span>";
+  }).join("");
+  document.getElementById("tabs").innerHTML = CH.map(function(c) {
+    var v = st.mood[c];
+    var sl = S.id === "home" && c === "S" && asleep();
+    return '<button class="tab' + (st.sel === c ? " sel" : "") + '" data-c="' + c + '" aria-pressed="' + (st.sel === c) + '"><svg viewBox="-32 -130 64 64">' + personRaw(c, { seat: true, sleep: sl, burn: F("burn" + c) }) + '</svg><span class="who">' + c + '</span><span class="role">' + (sl ? "schläft" : INFO[c].role) + '</span><span class="bar"><i style="width:' + v + "%;background:" + barCol(v) + '"></i></span></button>';
+  }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(b) {
+    b.onclick = function() {
+      st.sel = b.getAttribute("data-c");
+      snd("click");
+      render();
+    };
+  });
+  renderActs();
+}
+function visible(a) {
+  return (!a.req || a.req()) && !st.done[a.id];
+}
+function renderActs() {
+  var S = cur(), c = st.sel, html = "", list = (S.actions[c] || []).filter(visible), fam = S.family.filter(visible);
+  var btn = function(a, i, grp) {
+    var lk = a.lock && a.lock(), sub = [];
+    if (lk) sub.push(lk);
+    else {
+      if (a.advance) {
+        var miss = S.tasks.filter(function(t) {
+          return !T(t[0]);
+        }).map(function(t) {
+          return t[1];
+        });
+        sub.push(a.sub || "");
+        if (miss.length) sub.push("Fehlt noch: " + miss.join(", "));
+        else sub.push("Alles erledigt!");
+      } else {
+        if (a.mins) sub.push(a.mins + " min");
+        var f = fxStr(fxOf(a), c);
+        if (f) sub.push(f);
+      }
+    }
+    var cls = "act" + (a.advance ? " adv" : "") + (lk ? " lock" : "") + (a.task && !T(a.task) && !lk ? " task" : "");
+    return '<button class="' + cls + '" data-g="' + grp + '" data-i="' + i + '"' + (lk ? ' aria-disabled="true"' : "") + '><span class="ic">' + a.ico + '</span><span class="tx"><span class="lb">' + esc(a.label) + '</span><span class="sb">' + esc(sub.filter(Boolean).join(" · ")) + "</span></span></button>";
+  };
+  html += "<h3>Als " + c + " (" + INFO[c].role + ")</h3>" + list.map(function(a, i) {
+    return btn(a, i, "c");
+  }).join("");
+  if (!list.length) html += '<p class="log">Gerade nichts zu tun. Wechsel die Figur.</p>';
+  html += "<h3>Ganze Familie</h3>" + fam.map(function(a, i) {
+    return btn(a, i, "f");
+  }).join("");
+  var el = document.getElementById("acts");
+  el.innerHTML = html;
+  Array.prototype.forEach.call(el.querySelectorAll(".act"), function(b) {
+    b.onclick = function() {
+      var arr = b.getAttribute("data-g") === "c" ? list : fam;
+      doAction(arr[+b.getAttribute("data-i")]);
+    };
+  });
+}
+function modal(html) {
+  document.getElementById("card").innerHTML = html;
+  document.getElementById("ov").hidden = false;
+  var b = document.querySelector("#card button");
+  if (b) b.focus();
+}
+function closeModal() {
+  document.getElementById("ov").hidden = true;
+}
+var AC = null, muted = false;
+try {
+  muted = localStorage.getItem("fcu-mute") === "1";
+} catch (e) {
+}
+function snd(k) {
+  if (muted) return;
+  try {
+    if (!AC) {
+      var C = window.AudioContext || window.webkitAudioContext;
+      if (!C) return;
+      AC = new C();
+    }
+    var now = AC.currentTime;
+    if (k === "miau") {
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(600, now);
+      o.frequency.linearRampToValueAtTime(1050, now + 0.15);
+      o.frequency.linearRampToValueAtTime(520, now + 0.45);
+      g.gain.setValueAtTime(1e-4, now);
+      g.gain.exponentialRampToValueAtTime(0.06, now + 0.05);
+      g.gain.exponentialRampToValueAtTime(1e-4, now + 0.5);
+      o.connect(g);
+      g.connect(AC.destination);
+      o.start(now);
+      o.stop(now + 0.55);
+      return;
+    }
+    var seq = { click: [[520, 0.05]], good: [[660, 0.07], [880, 0.11]], bad: [[300, 0.1], [210, 0.16]], ding: [[880, 0.25], [660, 0.4]], win: [[523, 0.1], [659, 0.1], [784, 0.1], [1046, 0.3]] }[k] || [];
+    var t = now;
+    seq.forEach(function(n) {
+      var o2 = AC.createOscillator(), g2 = AC.createGain();
+      o2.type = "triangle";
+      o2.frequency.value = n[0];
+      g2.gain.setValueAtTime(1e-4, t);
+      g2.gain.exponentialRampToValueAtTime(0.12, t + 0.015);
+      g2.gain.exponentialRampToValueAtTime(1e-4, t + n[1]);
+      o2.connect(g2);
+      g2.connect(AC.destination);
+      o2.start(t);
+      o2.stop(t + n[1] + 0.02);
+      t += n[1] * 0.9;
+    });
+  } catch (e) {
+  }
+}
+function setMuteIcon() {
+  document.getElementById("mute").textContent = muted ? "🔇" : "🔊";
+}
+document.getElementById("mute").onclick = function() {
+  muted = !muted;
+  try {
+    localStorage.setItem("fcu-mute", muted ? "1" : "0");
+  } catch (e) {
+  }
+  setMuteIcon();
+};
+document.getElementById("menu").onclick = function() {
+  if (st && !st.busy) startScreen(true);
+};
+function startScreen(ingame) {
+  var best = 0;
+  try {
+    best = +localStorage.getItem("fcu-best") || 0;
+  } catch (e) {
+  }
+  var html = '<span class="eyebrow">Family Chaos</span><h2>Urlaub</h2><p>Ab ans Meer! Du spielst die ganze Familie: S, R, T und M. Wechsel oben zwischen den Figuren und erledige, was ansteht – von den Koffern bis zur Strandliege.</p><ul><li>Jede Aktion kostet Zeit. Die Uhr läuft bis zur nächsten Deadline.</li><li>Halte die <b>Urlaubslaune</b> aller vier hoch. Bei 0 gibt es einen Ausraster.</li><li>Was du zu Hause vergisst, rächt sich später.</li></ul>' + (best ? "<p>Rekord: <b>" + best + "</b></p>" : "") + '<div class="ch">' + (ingame ? '<button class="btn" id="back">Weiterspielen</button>' : "") + '<button class="btn pri" id="start">' + (ingame ? "Neu starten" : "Urlaub starten") + "</button></div>";
+  modal(html);
+  document.getElementById("start").onclick = function() {
+    closeModal();
+    snd("ding");
+    newGame();
+  };
+  if (ingame) document.getElementById("back").onclick = function() {
+    closeModal();
+  };
+}
+setMuteIcon();
+st = { stage: 0, sel: "R", mood: { S: 70, R: 70, T: 70, M: 70 }, flags: { asleep: true }, tasks: {}, done: {}, fired: {}, log: ["Abflug ans Meer"], bub: {}, pops: {}, acc: {}, hist: [], aus: 0, bald: 0, fotos: 0, t: 360 };
+render();
+st.busy = true;
+startScreen(false);
+</script>
+</body></html>
